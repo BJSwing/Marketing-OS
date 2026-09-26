@@ -1,0 +1,13 @@
+{
+  "name": "bjswing-marketing-os",
+  "owner": {
+    "name": "BJ Swing"
+  },
+  "plugins": [
+    {
+      "name": "marketing-os",
+      "source": "./",
+      "description": "Guided onboarding and project controls for a one-person AI marketing team."
+    }
+  ]
+}

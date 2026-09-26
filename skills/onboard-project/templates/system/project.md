@@ -16,4 +16,7 @@ location_link: {{LOCATION_LINK}}
 dmp_brand_slug: {{PROJECT_SLUG}}
 created: {{DATE}}
 plugin_version: {{PLUGIN_VERSION}}
+dashboards:
+  control_panel_url: OPEN   # set by the build-dashboards skill
+  map_url: OPEN
 ```

@@ -1,0 +1,624 @@
+
+<title>{{PROJECT_NAME}} Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#EDF1F3; --sheet:#F8FAFB; --grid:#D8E0E6; --ink:#15233A; --ink2:#46566B; --ink3:#77869A; --line:#C4CFD8;
+  --owner:#B0306A; --signal:#D2691E; --record:#138273; --brain:#6A4CC2; --orch:#15233A; --dept:#2366C4; --engage:#2F8A3E; --data:#5B6B7F; --know:#8A5A12;
+  --have:#2F8A3E; --chipbg:#FFFFFF;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#0F1622; --sheet:#151E2C; --grid:#1F2B3B; --ink:#E6ECF3; --ink2:#AEB9C7; --ink3:#7F8C9D; --line:#2C3A4E;
+    --owner:#E26A9E; --signal:#F0934E; --record:#3CC2AE; --brain:#A58DF0; --orch:#E6ECF3; --dept:#6FA3F0; --engage:#6CC77A; --data:#9AAABD; --know:#D6A450;
+    --have:#6CC77A; --chipbg:#1B2636;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#0F1622; --sheet:#151E2C; --grid:#1F2B3B; --ink:#E6ECF3; --ink2:#AEB9C7; --ink3:#7F8C9D; --line:#2C3A4E;
+  --owner:#E26A9E; --signal:#F0934E; --record:#3CC2AE; --brain:#A58DF0; --orch:#E6ECF3; --dept:#6FA3F0; --engage:#6CC77A; --data:#9AAABD; --know:#D6A450;
+  --have:#6CC77A; --chipbg:#1B2636;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{
+  background:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;
+  color:var(--ink); font-family:var(--body); font-size:15px; line-height:1.5;
+  padding:24px 16px 64px;
+}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:.01em}
+.mono{font-family:var(--mono)}
+.label{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+
+/* title block */
+.titleblock{background:var(--sheet);border:2px solid var(--ink);display:grid;grid-template-columns:1fr auto}
+.tb-main{padding:18px 20px;display:flex;flex-direction:column;gap:8px}
+.tb-main h1{font-size:clamp(40px,7vw,72px);font-weight:800;line-height:.9;text-transform:uppercase}
+.tb-main p{margin:0;color:var(--ink2);max-width:62ch}
+.tb-meta{border-left:2px solid var(--ink);display:grid;grid-template-rows:repeat(4,auto);min-width:200px}
+.tb-meta div{padding:8px 14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column}
+.tb-meta div:last-child{border-bottom:0}
+.tb-meta b{font-family:var(--mono);font-weight:500;font-size:13px}
+@media (max-width:640px){.titleblock{grid-template-columns:1fr}.tb-meta{border-left:0;border-top:2px solid var(--ink);grid-template-columns:1fr 1fr;grid-template-rows:auto}.tb-meta div{border-right:1px solid var(--line)}}
+
+/* controls */
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.tabs,.seg{display:flex;border:1.5px solid var(--ink);background:var(--sheet)}
+.tabs button,.seg button{font:600 14px var(--body);background:transparent;color:var(--ink);border:0;padding:9px 14px;cursor:pointer;border-right:1.5px solid var(--ink)}
+.tabs button:last-child,.seg button:last-child{border-right:0}
+.tabs button[aria-selected="true"],.seg button[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
+button:focus-visible,.chip:focus-visible{outline:3px solid var(--dept);outline-offset:2px}
+.seg-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--ink2);align-items:center}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--have);display:inline-block;margin-right:6px;vertical-align:middle}
+
+/* blueprint layout */
+.board{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start}
+@media (max-width:900px){.board{grid-template-columns:1fr}.rail{order:2}}
+.flow{display:flex;flex-direction:column;gap:0}
+.row4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media (max-width:1100px){.row4{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.row4{grid-template-columns:1fr}}
+.depts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:1000px){.depts{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.depts{grid-template-columns:1fr}}
+
+.layer{background:var(--sheet);border:1.5px solid var(--ink);border-top:5px solid var(--c);padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.layer.dashed{border-style:dashed;border-top-style:solid}
+.lhead{display:flex;flex-direction:column;gap:2px}
+.lhead .num{font-family:var(--mono);font-size:11px;color:var(--c);letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+.lhead h2{font-size:22px;font-weight:800;text-transform:uppercase;line-height:1}
+.lhead p{margin:0;font-size:13px;color:var(--ink2)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:500 13px var(--body);color:var(--ink);background:var(--chipbg);border:1px solid var(--line);padding:5px 9px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-align:left}
+.chip:hover{border-color:var(--c)}
+.chip[aria-expanded="true"]{background:var(--c);color:var(--sheet);border-color:var(--c)}
+.chip .dot{margin:0;width:7px;height:7px}
+.chip[aria-expanded="true"] .dot{background:var(--sheet)}
+
+.detail{border-top:1px dashed var(--line);padding-top:10px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.detail h3{font-size:19px;font-weight:600;text-transform:none}
+.detail p{margin:0;color:var(--ink2)}
+.tools{display:flex;flex-direction:column;gap:5px}
+.tool{display:grid;grid-template-columns:62px 1fr;gap:8px;align-items:baseline;font-size:13.5px}
+.tag{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;padding:1px 5px;border:1px solid var(--line);text-align:center;color:var(--ink2)}
+.tag.free{border-color:var(--engage);color:var(--engage)}
+.tag.paid{border-color:var(--signal);color:var(--signal)}
+.tag.open{border-color:var(--brain);color:var(--brain)}
+.have{color:var(--have);font-weight:600;font-size:12px;margin-left:4px}
+.hint{font-size:12.5px;color:var(--ink3);font-style:italic}
+
+/* connectors */
+.conn{display:flex;align-items:center;justify-content:center;gap:10px;padding:6px 0;color:var(--ink3)}
+.conn svg{flex:none}
+.conn span{font-family:var(--mono);font-size:11.5px;letter-spacing:.04em}
+
+/* orchestrator */
+.pipe{display:grid;grid-template-columns:repeat(6,1fr);gap:0;border:1px solid var(--line)}
+.pipe div{padding:10px 8px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:2px;background:var(--chipbg)}
+.pipe div:last-child{border-right:0}
+.pipe b{font-family:var(--display);font-size:18px;font-weight:600}
+.pipe .n{font-family:var(--mono);font-size:10.5px;color:var(--ink3)}
+.pipe small{font-size:12px;color:var(--ink2);line-height:1.35}
+@media (max-width:700px){.pipe{grid-template-columns:repeat(2,1fr)}.pipe div{border-bottom:1px solid var(--line)}}
+.rule{font-size:13.5px;background:var(--chipbg);border-left:3px solid var(--owner);padding:8px 10px;color:var(--ink)}
+
+.engage-row{display:grid;grid-template-columns:1fr 220px;gap:12px;align-items:stretch}
+@media (max-width:640px){.engage-row{grid-template-columns:1fr}}
+.audience{border:2px solid var(--engage);background:var(--sheet);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:14px;text-align:center;gap:4px}
+.audience b{font-family:var(--display);font-size:28px;font-weight:800;text-transform:uppercase;color:var(--engage)}
+.audience small{color:var(--ink2);font-size:12.5px}
+
+.loopback{border:1.5px dashed var(--signal);padding:10px 12px;display:flex;gap:10px;align-items:center;font-size:13.5px;color:var(--ink2);background:var(--sheet)}
+.loopback b{color:var(--signal)}
+
+/* rail */
+.rail{display:flex;flex-direction:column;gap:12px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}
+@media (max-width:900px){.rail{position:static}}
+.tree{background:var(--ink);color:#D9E2EC;padding:12px;font-family:var(--mono);font-size:12px;line-height:1.7;overflow-x:auto}
+:root[data-theme="dark"] .tree{background:#0A1019}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .tree{background:#0A1019}}
+.tree .dir{font-weight:500;color:#fff;margin-top:6px}
+.tree .dir:first-child{margin-top:0}
+.tree .f{color:#9FB0C3;padding-left:14px}
+.tree .d{display:inline-block;width:8px;height:8px;margin-right:6px}
+
+/* loop tab */
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media (max-width:720px){.cards{grid-template-columns:1fr}}
+.icard{background:var(--sheet);border:1.5px solid var(--ink);display:grid;grid-template-rows:auto 1fr}
+.icard header{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.icard h3{font-size:21px;font-weight:600}
+.reach{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;padding:2px 6px;white-space:nowrap}
+.reach.auto{background:var(--engage);color:var(--sheet)}
+.reach.you{background:var(--owner);color:var(--sheet)}
+.steps{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;padding:10px 12px;font-size:14px}
+.steps span:nth-child(odd){font-family:var(--mono);font-size:11px;color:var(--ink3);text-transform:uppercase;padding-top:2px}
+
+/* build tab */
+.phases{display:flex;flex-direction:column;gap:0;border:1.5px solid var(--ink);background:var(--sheet)}
+.phase{display:grid;grid-template-columns:70px 1fr 1fr;border-bottom:1px solid var(--line)}
+.phase:last-child{border-bottom:0}
+.phase .pn{font-family:var(--display);font-weight:800;font-size:40px;display:flex;align-items:flex-start;justify-content:center;padding-top:8px;border-right:1px solid var(--line);color:var(--c)}
+.phase .pb{padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.phase .pb:last-child{border-left:1px dashed var(--line);background:var(--chipbg)}
+.phase h3{font-size:22px;font-weight:600}
+.phase ul{margin:0;padding-left:18px;font-size:14px;color:var(--ink2)}
+.phase p{margin:0;font-size:14px}
+@media (max-width:700px){.phase{grid-template-columns:52px 1fr}.phase .pb:last-child{grid-column:2;border-left:0;border-top:1px dashed var(--line)}}
+
+.note{font-size:13px;color:var(--ink3);max-width:80ch}
+.livebar{font-family:var(--mono);font-size:12px;color:var(--ink3)}
+.livebar.ok::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--have);margin-right:6px;vertical-align:middle}
+.dot.pick{background:transparent;border:2px solid var(--dept);box-sizing:border-box}
+.gapmark{font-style:normal;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;border:1px dashed var(--owner);color:var(--owner);padding:0 3px;margin-right:6px}
+.chip .gapmark{margin:0}
+.mine{border:1.5px solid var(--c);background:var(--chipbg);padding:8px 10px;display:flex;flex-direction:column;gap:2px;font-size:14px}
+.mine b{font-size:15px}
+.mine small{color:var(--ink2);font-size:12.5px}
+.tree .open{display:inline-block;min-width:18px;text-align:center;margin-left:6px;padding:0 4px;background:#E26A9E;color:#141413;font-size:10.5px;font-weight:500}
+.tree .ok{color:#6CC77A;margin-left:6px}
+.pstat{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;padding:2px 6px;align-self:flex-start;border:1px solid var(--line);color:var(--ink3)}
+.pstat.done{background:var(--engage);border-color:var(--engage);color:var(--sheet)}
+.pstat.in_progress{border-color:var(--dept);color:var(--dept)}
+
+/* tabs wrap on phones */
+.tabs{flex-wrap:wrap;border:0;background:transparent;gap:6px}
+.tabs button{border:1.5px solid var(--ink);background:var(--sheet)}
+.tabs button:last-child{border-right:1.5px solid var(--ink)}
+
+/* agent badge */
+.abadge{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;background:var(--ink);color:var(--sheet);padding:2px 6px;align-self:flex-start}
+.abadge svg{flex:none}
+.watched{font-size:12.5px;color:var(--ink2);display:flex;gap:6px;align-items:center}
+
+/* flow diagram */
+.flowcard{background:var(--sheet);border:1.5px solid var(--ink);display:flex;flex-direction:column}
+.flowbar{display:flex;flex-wrap:wrap;gap:8px 16px;padding:10px 12px;border-bottom:1px solid var(--line);align-items:center}
+.etog{display:inline-flex;align-items:center;gap:7px;font:500 13px var(--body);color:var(--ink);background:transparent;border:1px solid var(--line);padding:4px 8px;cursor:pointer}
+.etog[aria-pressed="false"]{opacity:.4}
+.etog svg{flex:none}
+.scroller{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.scroller svg{display:block;min-width:880px;width:100%;height:auto}
+.swipe{display:none;font-size:12px;color:var(--ink3);padding:6px 12px 0}
+@media (max-width:900px){.swipe{display:block}}
+svg .node rect{fill:var(--chipbg);stroke:var(--ink);stroke-width:1.2}
+svg .node.agent rect.body{stroke-width:2.6}
+svg .node.human rect.body{stroke:var(--owner);stroke-dasharray:6 4;stroke-width:1.6}
+svg .node.tool rect.body{stroke:var(--line);stroke-width:1.2}
+svg .node .cap{stroke:none}
+svg .node text{fill:var(--ink);font-family:var(--body)}
+svg .node .t{font-family:var(--display);font-weight:800;font-size:17px;text-transform:uppercase;letter-spacing:.02em}
+svg .node .s{font-size:11.5px;fill:var(--ink2)}
+svg .node .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;fill:var(--ink3)}
+svg .node .pill{fill:var(--ink)}
+svg .node .pilltx{fill:var(--sheet);font-family:var(--mono);font-size:9.5px;letter-spacing:.08em}
+svg .node{cursor:pointer}
+svg .node:focus-visible rect.body{stroke:var(--dept);stroke-width:3}
+svg .edge{fill:none;stroke-width:2}
+svg .edge.main{stroke:var(--ink)}
+svg .edge.feedback{stroke:var(--signal);stroke-width:2.2}
+svg .edge.approval{stroke:var(--owner);stroke-dasharray:6 4}
+svg .edge.interrupt{stroke:var(--dept);stroke-dasharray:6 4}
+svg .edge.knowledge{stroke:var(--know);stroke-dasharray:2 4}
+svg .elabel{font-family:var(--mono);font-size:10px;fill:var(--ink2);paint-order:stroke;stroke:var(--sheet);stroke-width:4px;stroke-linejoin:round}
+svg.focus .edge,svg.focus .elabel{opacity:.12}
+svg.focus .edge.on,svg.focus .elabel.on{opacity:1}
+svg.focus .node{opacity:.35}
+svg.focus .node.on{opacity:1}
+svg .hidden-type{display:none}
+@media (prefers-reduced-motion:no-preference){svg .edge,svg .node,svg .elabel{transition:opacity .2s}}
+.fdetail{border-top:1px solid var(--line);padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;font-size:14px}
+.fdetail h3{font-size:22px;font-weight:600;grid-column:1/-1;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.fdetail p{margin:0;color:var(--ink2)}
+.fdetail .full{grid-column:1/-1}
+.fdetail ul{margin:4px 0 0;padding-left:18px;color:var(--ink2)}
+@media (max-width:640px){.fdetail{grid-template-columns:1fr}}
+
+/* agents tab */
+.agrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:1000px){.agrid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:600px){.agrid{grid-template-columns:1fr}}
+.acard{background:var(--sheet);border:2px solid var(--ink);border-top:5px solid var(--c);padding:12px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.acard h3{font-size:22px;font-weight:800;text-transform:uppercase;line-height:1}
+.acard dl{margin:0;display:grid;grid-template-columns:78px 1fr;gap:4px 8px}
+.acard dt{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);padding-top:3px}
+.acard dd{margin:0;color:var(--ink2)}
+.perms{display:flex;gap:4px;flex-wrap:wrap}
+.perm{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;padding:2px 6px;border:1px solid var(--line);color:var(--ink3)}
+.perm.y{background:var(--engage);border-color:var(--engage);color:var(--sheet)}
+.perm.g{background:transparent;border-color:var(--owner);color:var(--owner)}
+.mwrap{overflow-x:auto;background:var(--sheet);border:1.5px solid var(--ink)}
+table.matrix{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
+.matrix th,.matrix td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:center}
+.matrix th:first-child,.matrix td:first-child{text-align:left}
+.matrix thead th{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);font-weight:500}
+.matrix td.y{color:var(--engage);font-weight:700}
+.matrix td.g{color:var(--owner);font-weight:600;font-size:12.5px}
+.matrix td.n{color:var(--ink3)}
+.notagents{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:760px){.notagents{grid-template-columns:1fr}}
+.na{background:var(--sheet);border:1.5px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.na b{font-family:var(--display);font-size:19px;font-weight:600}
+.na p{margin:0;color:var(--ink2)}
+.sechead{display:flex;flex-direction:column;gap:2px;margin:8px 0 10px}
+.sechead h2{font-size:26px;font-weight:800;text-transform:uppercase}
+.sechead p{margin:0;color:var(--ink2);font-size:14px;max-width:75ch}
+@media (prefers-reduced-motion:no-preference){.chip,.tabs button{transition:background .15s,border-color .15s}}
+</style>
+
+<div class="wrap">
+  <header class="titleblock">
+    <div class="tb-main">
+      <span class="label">Marketing OS · project map</span>
+      <h1 id="pname">{{PROJECT_NAME}}</h1>
+      <p>Every box is a job. Tap a part to see the tool this project picked for it, or the options if it's still a gap.</p>
+      <p class="livebar" id="livebar" role="status">Connecting to live data…</p>
+    </div>
+    <div class="tb-meta">
+      <div><span class="label">Owner</span><b id="m-owner">—</b></div>
+      <div><span class="label">Updated</span><b id="m-updated">—</b></div>
+      <div><span class="label">Jobs filled</span><b id="m-filled">—</b></div>
+      <div><span class="label">Open questions</span><b id="m-open">—</b></div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="tabs" role="tablist" aria-label="Views">
+      <button role="tab" id="tab-map" aria-selected="true" data-tab="map">Blueprint</button>
+      <button role="tab" id="tab-flow" aria-selected="false" data-tab="flow">Flow</button>
+      <button role="tab" id="tab-agents" aria-selected="false" data-tab="agents">Agents</button>
+      <button role="tab" id="tab-loop" aria-selected="false" data-tab="loop">The Loop</button>
+      <button role="tab" id="tab-build" aria-selected="false" data-tab="build">Build Order</button>
+    </div>
+    <div class="seg-wrap">
+      <span class="label">Show tools</span>
+      <div class="seg" id="mode">
+        <button id="m-all" aria-pressed="true" data-m="all">All</button>
+        <button id="m-free" aria-pressed="false" data-m="free">Free / open</button>
+        <button id="m-paid" aria-pressed="false" data-m="paid">Paid</button>
+      </div>
+    </div>
+  </div>
+  <div class="legend"><span><i class="dot"></i>Picked and connected</span><span><i class="dot pick"></i>Picked, not connected</span><span><i class="gapmark">GAP</i>No tool yet</span><span><span class="tag free">free</span> free or free tier</span><span><span class="tag open">open</span> open-source, self-host</span><span><span class="tag paid">paid</span> subscription</span></div>
+
+  <section id="view-map" class="board">
+    <aside class="rail">
+      <div class="layer" style="--c:var(--know)">
+        <div class="lhead"><span class="num">04 · Knowledge layer</span><h2>Brand Brain</h2><p>Plain files every agent reads before it writes. Change a file, and every output changes with it.</p></div>
+        <div class="tree" id="tree"></div>
+        <p class="hint" id="treehint">Numbers show open questions in each file.</p>
+      </div>
+      <div class="layer" style="--c:var(--owner)" data-layer="access"></div>
+    </aside>
+
+    <div class="flow" id="flow"></div>
+  </section>
+
+  <section id="view-flow" hidden>
+    <div class="sechead"><span class="label">How information moves</span><h2>Flow of information</h2><p>Thick boxes are agents. Thin boxes are tools and data they use. Tap any box to trace only its lines. Tap a line type to hide or show it.</p></div>
+    <div class="flowcard">
+      <div class="flowbar" id="etogs"></div>
+      <p class="swipe">Swipe sideways to see the whole diagram.</p>
+      <div class="scroller"><svg id="fsvg" viewBox="0 0 1200 760" role="img" aria-label="Diagram of how information flows between the marketing system's modules"></svg></div>
+      <div class="fdetail" id="fdetail"></div>
+    </div>
+  </section>
+
+  <section id="view-agents" hidden>
+    <div class="sechead"><span class="label">Who does the work</span><h2>Nine agents</h2><p>An agent is a module that decides and acts on its own. Every agent runs on the same brain and reads the same brand files. Each one has a narrow job and only the permissions that job needs.</p></div>
+    <div class="agrid" id="agrid"></div>
+    <div class="sechead" style="margin-top:22px"><span class="label">Privilege separation</span><h2>Who can do what</h2><p>No agent can spend money. Spending always goes through your approval queue. Only the Publisher, Email and Community agents can send anything to the public.</p></div>
+    <div class="mwrap"><table class="matrix" id="matrix"></table></div>
+    <div class="sechead" style="margin-top:22px"><span class="label">Not agents</span><h2>What the agents use</h2><p>These modules don't make decisions. They hold data, supply tools or keep you in control.</p></div>
+    <div class="notagents">
+      <div class="na"><b>Tools and data</b><p>Signals, System of Record, Data &amp; Observability. Agents read from and write to these.</p></div>
+      <div class="na"><b>The Brain</b><p>The shared engine every agent runs on: the model, memory, image and voice tools. It is not an agent itself.</p></div>
+      <div class="na"><b>You and the control plane</b><p>Brand files, budget cap, approval queue, activity log and kill switch. Rules, not reasoning.</p></div>
+    </div>
+  </section>
+
+  <section id="view-loop" hidden>
+    <div class="layer" style="--c:var(--dept);margin-bottom:12px">
+      <div class="lhead"><span class="num">What interrupts the loop</span><h2>Eight events, one rule each</h2><p>Each event used to need a marketer at a desk. Here a watcher spots it, a department handles it, and you only hear about it when money or judgment is involved.</p></div>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section id="view-build" hidden>
+    <div class="phases" id="phases"></div>
+    <p class="note" style="margin-top:12px">Build one phase at a time. Each phase is usable on its own, so you get value before the whole system exists.</p>
+  </section>
+
+  <p class="note">Tool names are examples for each job, not endorsements. Free tiers and prices change often, so check the vendor's current plan before you commit.</p>
+</div>
+
+<script>
+const T=(n,t,have)=>({n,t,have:!!have});
+const LAYERS=[
+ {id:"owner",num:"00 · Owner input",title:"You",c:"--owner",dashed:true,desc:"Human-led. You set these. The AI reads them and never changes them.",parts:[
+  {n:"Brand voice",job:"How the brand sounds, words it uses and never uses.",tools:[T("/brand/voice-guide.md","free")],hint:"A file, not a tool. Write it once, update it when the brand shifts."},
+  {n:"Budget cap",job:"The most the system may spend per day, week and campaign without asking.",tools:[T("/brand/budget-rules.md","free")],hint:"Anything over the cap goes to the approval queue."},
+  {n:"Approval bar",job:"What ships on its own and what waits for your yes.",tools:[T("/brand/approval-rules.md","free")],hint:"Start strict: you approve everything. Loosen it as trust builds."},
+  {n:"Positioning & offer",job:"Who it's for, why it's different, what you sell and at what price.",tools:[T("/brand/positioning.md","free")]}
+ ]},
+ {id:"signals",num:"01 · Signals",title:"Signals",c:"--signal",desc:"Where every market and brand signal comes from.",parts:[
+  {n:"Search queries",job:"What people type to find you, and where you rank.",tools:[T("Google Search Console","free",1),T("Semrush","paid")]},
+  {n:"Site behavior",job:"What visitors do on the site: pages, clicks, drop-off.",tools:[T("Google Analytics 4","free",1),T("Microsoft Clarity","free"),T("Hotjar","paid")]},
+  {n:"Competitor ranks",job:"Which keywords competitors win and lose.",tools:[T("DataForSEO (pay per call)","paid",1),T("Ahrefs Webmaster Tools","free"),T("Ahrefs / Semrush","paid")]},
+  {n:"Search interest",job:"Rising topics before they peak.",tools:[T("Google Trends","free"),T("Exploding Topics","paid")]},
+  {n:"Social insights",job:"Reach and engagement from your own social accounts.",tools:[T("Meta Business Suite","free"),T("Sprout Social","paid")]},
+  {n:"Audience intel",job:"What your audience talks about, in their own words.",tools:[T("Reddit","free",1),T("SparkToro","free"),T("Apify scrapers","paid",1)]},
+  {n:"Channel analytics",job:"Views and retention on video and social channels.",tools:[T("YouTube Studio, native insights","free")]},
+  {n:"Mentions",job:"Anyone naming your brand or competitors online.",tools:[T("Google Alerts","free"),T("Brand24","paid")]}
+ ]},
+ {id:"record",num:"02 · System of record",title:"System of Record",c:"--record",desc:"The spine. One unified profile per customer, one home per asset.",parts:[
+  {n:"CRM & contacts",job:"Every person, their history and where they are in the funnel.",tools:[T("HubSpot free CRM","free"),T("Twenty","open"),T("HubSpot / Attio paid","paid")]},
+  {n:"Content calendar",job:"What goes out, where and when.",tools:[T("Notion or Airtable free","free"),T("Airtable paid","paid")]},
+  {n:"Asset drive",job:"Every photo, video, logo and export, in one place.",tools:[T("Google Drive","free",1),T("Dropbox","paid")]},
+  {n:"Playbook wiki",job:"How you do things: channel rules, checklists, templates.",tools:[T("GitHub markdown","free",1),T("Notion","free"),T("Obsidian","free")]},
+  {n:"Customer data platform",job:"Joins site, store and email data into one profile per person.",tools:[T("RudderStack","open"),T("Segment","paid")],hint:"Skip at first. Add it once you have three or more data sources to join."},
+  {n:"Store",job:"Products, orders and customers.",tools:[T("Shopify","paid",1),T("WooCommerce","open")]},
+  {n:"Audience list",job:"The email and SMS list you own.",tools:[T("Klaviyo","paid",1),T("Kit free tier","free")]}
+ ]},
+ {id:"brain",num:"03 · The brain",title:"The Brain",c:"--brain",desc:"The labor. Reasoning, memory and making things.",parts:[
+  {n:"Reasoning",job:"Reads the playbook, thinks, writes and decides.",tools:[T("Claude","paid",1),T("Local models via Ollama","open")]},
+  {n:"Agent runner",job:"Runs multi-step jobs on a schedule or when an event fires.",tools:[T("Claude scheduled tasks + skills","paid",1),T("n8n self-hosted","open"),T("LangGraph","open")]},
+  {n:"Memory store",job:"Remembers every topic, post and result so it never repeats itself.",tools:[T("Supabase + pgvector","free",1),T("NotebookLM","free",1),T("Pinecone","paid")]},
+  {n:"Visuals",job:"Generates images and graphics on brand.",tools:[T("kie.ai image models","paid",1),T("Canva free","free"),T("Midjourney","paid")]},
+  {n:"Voiceover",job:"Turns scripts into narration.",tools:[T("ElevenLabs free tier","free"),T("ElevenLabs","paid")]},
+  {n:"Live research",job:"Looks things up on the open web right now.",tools:[T("Claude web search","paid",1),T("Perplexity","free")]}
+ ]}
+];
+const ORCH={num:"05 · Orchestrator",title:"Orchestrator",c:"--orch",desc:"Every event enters here first. Nothing publishes on its own.",
+ steps:[["Collect","pull signals + records"],["Score","rank by impact vs. effort"],["Brief","write the job ticket"],["Draft","department makes it"],["Schedule","slot it on the calendar"],["Approve","auto or your queue"]],
+ rule:"Routine content ships end to end. Only budget changes and edge cases reach you."};
+const DEPTS={num:"06 · Departments",title:"Departments",c:"--dept",desc:"Six teams a marketer would recognize. Each is a set of skills the brain runs.",parts:[
+  {n:"Research & Intel",job:"Audience research, competitor tracking, trend detection, backlinks and keyword difficulty. Writes a short signal summary for the orchestrator.",tools:[T("DataForSEO","paid",1),T("Reddit","free",1),T("Google Trends","free"),T("Semrush / Ahrefs","paid")]},
+  {n:"Content Engine",job:"Drafts copy from briefs, scores it against the SEO checklist, edits and makes variations.",tools:[T("Claude + /content files","paid",1),T("LanguageTool","free"),T("Grammarly","paid"),T("Surfer SEO","paid")]},
+  {n:"Creative Studio",job:"Graphics, AI images, layouts, coded video and voiceover.",tools:[T("kie.ai","paid",1),T("Canva","free"),T("Figma","free"),T("Remotion (coded video)","open"),T("ElevenLabs","paid")]},
+  {n:"Distribution & Publishing",job:"Schedules and posts across channels, bulk posting, DM replies.",tools:[T("Buffer free tier","free"),T("Postiz","open"),T("Buffer / Typefully paid","paid")]},
+  {n:"Audience & Email",job:"Builds emails, newsletters and automations, landing pages and lead capture.",tools:[T("Klaviyo","paid",1),T("Shopify Email","paid",1),T("Kit free tier","free"),T("Carrd","free")]},
+  {n:"Analytics & Optimization",job:"Traffic and conversion, dashboards, ad queries, and feeds insights back to the orchestrator.",tools:[T("GA4","free",1),T("Search Console","free",1),T("Looker Studio","free"),T("Plausible","paid")]}
+ ]};
+const ENGAGE={num:"07 · Engage",title:"Engage",c:"--engage",desc:"Approved content goes out from one brain.",parts:[
+  {n:"Social posts",job:"Posts to each channel in that channel's format.",tools:[T("Buffer","free"),T("Native schedulers (Meta, TikTok)","free")]},
+  {n:"Email out",job:"Sends campaigns and automated flows.",tools:[T("Klaviyo","paid",1),T("Kit","free")]},
+  {n:"Cross-post",job:"One idea reshaped for every channel.",tools:[T("Claude skill","paid",1),T("Buffer","free")]},
+  {n:"DM replies",job:"Answers common comments and DMs, and hands real conversations to you.",tools:[T("ManyChat free tier","free"),T("ManyChat Pro","paid")]}
+ ]};
+const DATA={num:"08 · Data & observability",title:"Data & Observability",c:"--data",desc:"The numbers behind every card on the report.",parts:[
+  {n:"Pipelines (ETL)",job:"Copies data from GSC, GA4, social and the store into one warehouse.",tools:[T("Airbyte","open"),T("Fivetran","paid")]},
+  {n:"Transform",job:"Cleans and models raw data into tables you can trust.",tools:[T("dbt Core","open"),T("dbt Cloud","paid")]},
+  {n:"Warehouse",job:"One database that holds everything.",tools:[T("Supabase Postgres","free",1),T("BigQuery sandbox","free")]},
+  {n:"Reporting",job:"Dashboards and cohort reports you can read on your phone.",tools:[T("Looker Studio","free"),T("Metabase","open")]},
+  {n:"Error tracking",job:"Tells you when an automation breaks.",tools:[T("Sentry free tier","free"),T("Sentry","paid")]}
+ ],hint:"Start without a warehouse. Claude can query GA4 and Search Console directly. Add this layer when reports get slow or you need history."};
+const ACCESS={num:"Control plane",title:"Access",desc:"How you stay in charge without doing the work.",parts:[
+  {n:"Owner dashboard",job:"One screen: what shipped, what's waiting, what it did.",tools:[T("Claude artifact dashboard","paid",1),T("Looker Studio","free")]},
+  {n:"Approval queue",job:"Anything over your approval bar waits here for a yes.",tools:[T("Notion / Airtable view","free"),T("Slack approvals","free")]},
+  {n:"Activity log",job:"A record of every action every agent took.",tools:[T("Supabase table","free",1),T("Google Sheet","free")]},
+  {n:"Permissions",job:"Which agent may read, draft, post or spend.",tools:[T("Per-connector scopes","free",1)],hint:"Give drafting agents read-only access. Only the publisher can post."},
+  {n:"Alerts",job:"Pings you when something needs judgment.",tools:[T("Push / email / Slack","free")]},
+  {n:"Kill switch",job:"One toggle that pauses every scheduled post and spend.",tools:[T("Flag in /brand/approval-rules.md","free")]}
+ ]};
+const TREE={"/brand":["voice-guide.md","positioning.md","messaging-bank.md","tone-rules.md"],"/research":["trend-map.md","competitor-tracking.md","keyword-map.md","audience-icp.md"],"/content":["content-calendar.md","hook-bank.md","brief-templates.md","seo-checklist.md"],"/creative":["visual-specs.md","video-scripts.md","thumbnail-rules.md"],"/distribution":["channel-playbooks.md","posting-schedule.md","hashtag-rules.md"],"/audience":["list-segments.md","email-sequences.md","lead-magnets.md"],"/analytics":["kpi-model.md","attribution.md","reporting-model.md"]};
+const TREECOL=["--owner","--dept","--signal","--record","--brain","--engage","--data"];
+const INTERRUPTS=[
+ {t:"Search demand spikes",w:"SEO watcher flags a rising query",d:"Content Engine drafts a post",r:"auto"},
+ {t:"Competitor drops content",w:"Mentions radar flags it",d:"Research re-briefs the plan, Creative refreshes assets",r:"auto"},
+ {t:"Content calendar thin",w:"Orchestrator sees empty slots",d:"Brain fills the calendar, scheduler queues posts",r:"auto"},
+ {t:"Ranking drops a page",w:"Search Console alert",d:"Content Engine refreshes the page",r:"auto"},
+ {t:"A post goes viral",w:"Social insights spike",d:"Repurposes it across channels",r:"you",rn:"Boosting spends money, so you approve it"},
+ {t:"Ad creative fatigues",w:"Click rate falls on an ad",d:"Creative rebuilds, ads rotate",r:"you",rn:"New spend goes to your queue"},
+ {t:"Comment or DM flood",w:"Inbox volume jumps",d:"Auto-replies to routine questions",r:"you",rn:"Wakes you if a real issue shows up"},
+ {t:"Email opens drop",w:"Email platform flags the drop",d:"Rewrites subject lines, tests a new send",r:"auto"}
+];
+const PHASES=[
+ {c:"--owner",t:"Foundation",what:["Write the four owner files: voice, positioning, budget cap, approval bar","Set up the /brand … /analytics folders","Pick one home for them (GitHub or Drive)"],done:"Claude can write a post that sounds like the brand using only the files."},
+ {c:"--signal",t:"See the market",what:["Connect Search Console, GA4 and one social account","Add Reddit and Trends for audience language","Weekly signal summary written to /research"],done:"Every Monday you get a one-page read of what changed."},
+ {c:"--orch",t:"One working department",what:["Build the orchestrator steps as Claude skills","Start with Content Engine only","Approval queue: you approve everything"],done:"Five briefs become five drafts a week, waiting for your yes."},
+ {c:"--dept",t:"Ship it",what:["Add Distribution and Audience & Email","Connect the scheduler and Klaviyo","Loosen the approval bar for routine posts"],done:"Routine posts and emails go out without you touching them."},
+ {c:"--data",t:"Measure and react",what:["Owner dashboard on your phone","Turn on the eight interrupt rules one at a time","Activity log and kill switch"],done:"The system reacts to events and only pings you for money or judgment."},
+ {c:"--engage",t:"Close the loop",what:["Results feed back into Signals","Memory store logs what worked","Add the data warehouse only if reports get slow"],done:"Each week's plan is shaped by last week's results."}
+];
+
+let mode="all";
+const LIVE={ready:false,meta:null,summary:null,tools:{},files:{},phases:{}};
+const slug=s=>String(s).toLowerCase().replace(/&/g," ").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+function fmtDate(v){if(!v)return"—";const d=new Date(v);return isNaN(d)?String(v):d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});}
+function renderMeta(){
+  const m=LIVE.meta||{},s=LIVE.summary||{};
+  if(m.name){document.getElementById("pname").textContent=m.name;document.title=m.name+" Map";}
+  document.getElementById("m-owner").textContent=m.owner||"—";
+  document.getElementById("m-updated").textContent=fmtDate(m.updatedAt);
+  const all=toolJobs();
+  const filled=all.filter(k=>LIVE.tools[k]&&LIVE.tools[k].status!=="gap").length;
+  document.getElementById("m-filled").textContent=LIVE.ready?`${filled} of ${all.length}`:"—";
+  document.getElementById("m-open").textContent=typeof s.openQuestions==="number"?String(s.openQuestions):"—";
+}
+function renderAll(){render();renderTree();renderPhases();renderMeta();}
+async function startLive(){
+  const bar=document.getElementById("livebar");
+  const db=window.claude&&window.claude.use?await window.claude.use("db"):null;
+  if(!db){bar.textContent="Live data isn't available in this view. Showing the plan only.";return;}
+  const setOk=()=>{bar.className="livebar ok";bar.textContent="Live · updates as agents work";};
+  const fail=()=>{bar.className="livebar";bar.textContent="Live data paused. Reopen the page to reconnect.";};
+  const coll=(name,key)=>db.collection(name).onSnapshot(snap=>{const o={};snap.docs.forEach(d=>{o[d.id]=d.data();});LIVE[key]=o;LIVE.ready=true;setOk();renderAll();},fail);
+  db.doc("project/meta").onSnapshot(d=>{LIVE.meta=d.exists?d.data():null;renderMeta();},fail);
+  db.doc("project/summary").onSnapshot(d=>{LIVE.summary=d.exists?d.data():null;renderMeta();},fail);
+  coll("tools","tools");coll("files","files");coll("phases","phases");
+}
+const open={};
+const esc=s=>String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const toolJobs=()=>[...LAYERS.filter(L=>L.id!=="owner"),DEPTS,ENGAGE,DATA].flatMap(L=>L.parts.map(p=>slug(p.n)));
+function mineBlock(p){
+  const m=LIVE.tools[slug(p.n)];
+  if(!LIVE.ready||!toolJobs().includes(slug(p.n))) return "";
+  if(!m) return `<div class="mine" style="--c:var(--line)"><span class="label">This project</span><b>Not researched yet</b><small>Run tool research for this module to pick one.</small></div>`;
+  if(m.status==="gap") return `<div class="mine" style="--c:var(--owner)"><span class="label">This project</span><b><i class="gapmark">GAP</i>No tool picked</b>${m.why?`<small>${esc(m.why)}</small>`:""}</div>`;
+  return `<div class="mine" style="--c:var(--have)"><span class="label">This project uses</span><b>${esc(m.tool||"")}${m.connected?'<span class="have">● connected</span>':''}</b><small>${[m.pickedOn?`Picked ${esc(m.pickedOn)}`:"",m.why?esc(m.why):""].filter(Boolean).join(" · ")}</small></div>`;
+}
+function toolList(tools){
+  const f=tools.filter(t=>mode==="all"||(mode==="free"?t.t!=="paid":t.t==="paid"));
+  if(!f.length) return `<p class="hint">No ${mode==="free"?"free":"paid"} option listed for this job.</p>`;
+  return `<div class="tools">${f.map(t=>`<div class="tool"><span class="tag ${t.t}">${t.t}</span><span>${esc(t.n)}</span></div>`).join("")}</div>`;
+}
+function chipMark(p){const m=LIVE.tools[slug(p.n)];if(!m)return"";if(m.status==="gap")return'<i class="gapmark">GAP</i>';return m.connected?'<i class="dot"></i>':'<i class="dot pick"></i>';}
+function partsBlock(L,key){
+  const sel=open[key];
+  const chips=L.parts.map((p,i)=>`<button class="chip" id="chip-${key}-${i}" aria-expanded="${sel===i}" data-k="${key}" data-i="${i}">${chipMark(p)}${esc(p.n)}</button>`).join("");
+  let det="";
+  if(sel!=null){const p=L.parts[sel];det=`<div class="detail"><h3>${esc(p.n)}</h3><p>${esc(p.job)}</p>${mineBlock(p)}${toolJobs().includes(slug(p.n))?'<span class="label">Options in the tool library</span>':''}${toolList(p.tools)}${p.hint?`<p class="hint">${esc(p.hint)}</p>`:""}</div>`;}
+  return `<div class="chips">${chips}</div>${det}`;
+}
+const ABADGE=n=>`<span class="abadge"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><rect x="1" y="3" width="8" height="6" fill="none" stroke="currentColor" stroke-width="1.4"/><line x1="5" y1="0.5" x2="5" y2="3" stroke="currentColor" stroke-width="1.4"/></svg>Agent ${n}</span>`;
+const WATCH=t=>`<div class="watched"><span class="abadge">Agent</span>${esc(t)}</div>`;
+function layer(L,key,extra=""){
+  return `<div class="layer${L.dashed?" dashed":""}" style="--c:var(${L.c})"><div class="lhead"><span class="num">${esc(L.num)}</span>${L.agent?ABADGE(L.agent):""}<h2>${esc(L.title)}</h2><p>${esc(L.desc)}</p></div>${L.parts?partsBlock(L,key):""}${extra}${L.hint?`<p class="hint">${esc(L.hint)}</p>`:""}</div>`;
+}
+const arrow=(label,col="var(--ink3)")=>`<div class="conn"><svg width="14" height="22" viewBox="0 0 14 22" aria-hidden="true"><line x1="7" y1="0" x2="7" y2="16" stroke="${col}" stroke-width="2"/><path d="M1 13 L7 21 L13 13" fill="none" stroke="${col}" stroke-width="2"/></svg><span>${label}</span></div>`;
+function render(){
+  const flow=document.getElementById("flow");
+  const top=LAYERS.map(L=>layer(L,L.id,L.id==="signals"?WATCH("Watcher agent (1) monitors these around the clock."):"")).join("");
+  const pipe=`<div class="pipe">${ORCH.steps.map((s,i)=>`<div><span class="n">step ${i+1}</span><b>${s[0]}</b><small>${s[1]}</small></div>`).join("")}</div><div class="rule">${esc(ORCH.rule)}</div>`;
+  const orch=`<div class="layer" style="--c:var(${ORCH.c});border-width:2px;border-top-width:5px"><div class="lhead"><span class="num">${ORCH.num}</span>${ABADGE(2)}<h2>${ORCH.title}</h2><p>${ORCH.desc}</p></div>${pipe}</div>`;
+  const deptCells=DEPTS.parts.map((p,i)=>{const k="dept"+i;const L={agent:[3,4,5,6,7,8][i],num:"Dept "+String.fromCharCode(65+i),title:p.n,c:DEPTS.c,desc:p.job,parts:[{n:p.n,job:"Swap the tool without changing the department's job.",tools:p.tools}]};return layer(L,k);}).join("");
+  const depts=`<div class="lhead" style="--c:var(${DEPTS.c});padding:0 2px 8px"><span class="num">${DEPTS.num}</span><h2>${DEPTS.title}</h2><p>${DEPTS.desc}</p></div><div class="depts">${deptCells}</div>`;
+  flow.innerHTML=`<div class="row4">${top}</div>${arrow("all four feed the orchestrator")}${orch}${arrow("orchestrator hands out briefs")}${depts}${arrow("approved work goes out")}<div class="engage-row">${layer(ENGAGE,"engage",WATCH("Community agent (9) handles DM and comment replies."))}<div class="audience"><span class="label">they respond</span><b>Audience</b><small>Clicks, replies, buys, ignores</small></div></div>${arrow("results are measured")}${layer(DATA,"data")}<div class="conn"></div><div class="loopback"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M18 11a7 7 0 1 1-2-4.9" fill="none" stroke="var(--signal)" stroke-width="2"/><path d="M17 2v5h-5" fill="none" stroke="var(--signal)" stroke-width="2"/></svg><span><b>The loop:</b> audience response and data flow back into 01 · Signals, and the next week's plan starts from what worked.</span></div>`;
+  const acc=document.querySelector('[data-layer="access"]');
+  acc.innerHTML=`<div class="lhead"><span class="num">${ACCESS.num}</span><h2>${ACCESS.title}</h2><p>${ACCESS.desc}</p></div>${partsBlock(ACCESS,"access")}`;
+}
+function renderTree(){document.getElementById("tree").innerHTML=Object.entries(TREE).map(([d,fs],i)=>`<div class="dir"><i class="d" style="background:var(${TREECOL[i]})"></i>${d}</div>${fs.map(f=>{const r=LIVE.files[slug(d.slice(1)+"-"+f.replace(/\.md$/,""))];const n=r?Number(r.open)||0:null;return `<div class="f">· ${f}${n===null?"":n?`<span class="open" aria-label="${n} open questions">${n}</span>`:'<span class="ok" aria-label="complete">✓</span>'}</div>`;}).join("")}`).join("");}
+document.getElementById("cards").innerHTML=INTERRUPTS.map(x=>`<article class="icard"><header><h3>${esc(x.t)}</h3><span class="reach ${x.r}">${x.r==="auto"?"Handled":"Reaches you"}</span></header><div class="steps"><span>Spotted by</span><span>${esc(x.w)}</span><span>Handled by</span><span>${esc(x.d)}</span>${x.rn?`<span>Your part</span><span>${esc(x.rn)}</span>`:`<span>Your part</span><span>None. It shows up in the activity log.</span>`}</div></article>`).join("");
+const PSTAT={not_started:"Not started",in_progress:"In progress",done:"Done"};
+function renderPhases(){document.getElementById("phases").innerHTML=PHASES.map((p,i)=>{const st=LIVE.phases["p"+(i+1)];return `<div class="phase" style="--c:var(${p.c})"><div class="pn">${i+1}</div><div class="pb">${st?`<span class="pstat ${esc(st.status)}">${esc(PSTAT[st.status]||st.status)}${st.doneOn?" · "+esc(st.doneOn):""}</span>`:""}<h3>${esc(p.t)}</h3><ul>${p.what.map(w=>`<li>${esc(w)}</li>`).join("")}</ul></div><div class="pb"><span class="label">Done when</span><p>${esc(p.done)}</p>${st&&st.note?`<p class="hint">${esc(st.note)}</p>`:""}</div></div>`;}).join("");}
+
+document.addEventListener("click",e=>{
+  const c=e.target.closest(".chip");
+  if(c){const k=c.dataset.k,i=+c.dataset.i;open[k]=open[k]===i?null:i;const id=c.id;render();const n=document.getElementById(id);n&&n.focus({preventScroll:true});return;}
+  const m=e.target.closest("#mode button");
+  if(m){mode=m.dataset.m;document.querySelectorAll("#mode button").forEach(b=>b.setAttribute("aria-pressed",b===m));render();return;}
+  const t=e.target.closest("[data-tab]");
+  if(t){document.querySelectorAll("[data-tab]").forEach(b=>b.setAttribute("aria-selected",b===t));["map","flow","agents","loop","build"].forEach(v=>document.getElementById("view-"+v).hidden=v!==t.dataset.tab);try{localStorage.setItem("tab",t.dataset.tab)}catch(_){}}
+});
+/* ---------- FLOW DIAGRAM ---------- */
+const NODES={
+ know:{x:20,y:40,w:170,h:670,kind:"tool",c:"--know",k:"04 · KNOWLEDGE",t:"Brand Brain",s:["Files every agent","reads before it acts"],what:"The shared brand files: voice, research, content rules, creative specs, channel playbooks, audience and KPIs."},
+ signals:{x:220,y:40,w:220,h:100,kind:"tool",c:"--signal",k:"01 · SIGNALS",t:"Signals",s:["Search, site, social,","competitors, mentions"],what:"Raw market and brand data from Search Console, GA4, social insights, Reddit, trends and mention alerts."},
+ record:{x:460,y:40,w:220,h:100,kind:"tool",c:"--record",k:"02 · RECORD",t:"System of Record",s:["CRM, calendar, assets,","store, email list"],what:"Where the business keeps its facts: customers, orders, the content calendar, assets and the email list."},
+ owner:{x:700,y:40,w:220,h:100,kind:"human",c:"--owner",k:"00 · OWNER",t:"You",s:["Voice, positioning,","budget cap, approval bar"],what:"You set the rules. You write the brand files and answer the approval queue. Nothing else needs you."},
+ brain:{x:940,y:40,w:240,h:100,kind:"tool",c:"--brain",k:"03 · BRAIN",t:"The Brain",s:["Model, memory, images,","voice. Powers every agent"],what:"The shared engine: the reasoning model, the memory store, image and voice tools. Every agent runs on it."},
+ watcher:{x:220,y:190,w:200,h:90,kind:"agent",n:1,c:"--signal",t:"Watcher",s:["Watches signals,","fires events"]},
+ orch:{x:460,y:180,w:460,h:110,kind:"agent",n:2,c:"--orch",t:"Orchestrator",s:["Collect → Score → Brief → Draft → Schedule → Approve","Decides what gets made and in what order"]},
+ access:{x:960,y:190,w:220,h:90,kind:"human",c:"--owner",k:"CONTROL PLANE",t:"Approval Queue",s:["Dashboard, activity log,","alerts, kill switch"],what:"Your control panel. Anything over your approval bar waits here. The kill switch pauses every agent."},
+ research:{x:300,y:350,w:190,h:80,kind:"agent",n:3,c:"--dept",t:"Research",s:["Intel + trends"]},
+ content:{x:510,y:350,w:190,h:80,kind:"agent",n:4,c:"--dept",t:"Content",s:["Copy + SEO score"]},
+ creative:{x:720,y:350,w:190,h:80,kind:"agent",n:5,c:"--dept",t:"Creative",s:["Images, video, voice"]},
+ analytics:{x:300,y:480,w:190,h:80,kind:"agent",n:8,c:"--dept",t:"Analytics",s:["Reads results"]},
+ email:{x:510,y:480,w:190,h:80,kind:"agent",n:7,c:"--dept",t:"Email",s:["Flows + newsletters"]},
+ publisher:{x:720,y:480,w:190,h:80,kind:"agent",n:6,c:"--dept",t:"Publisher",s:["Schedules + posts"]},
+ community:{x:960,y:350,w:220,h:90,kind:"agent",n:9,c:"--engage",t:"Community",s:["Replies to comments + DMs,","escalates real issues"]},
+ audience:{x:960,y:490,w:220,h:70,kind:"aud",c:"--engage",k:"THE PUBLIC",t:"Audience",s:["Clicks, replies, buys"],what:"The people you market to. What they do becomes the next round of signals."},
+ data:{x:300,y:630,w:610,h:80,kind:"tool",c:"--data",k:"08 · DATA & OBSERVABILITY",t:"Data & Observability",s:["Pipelines, warehouse, dashboards, error tracking"],what:"Collects every result into one place so Analytics can read it and you can see it on your dashboard."}
+};
+const EDGES=[
+ {f:"signals",to:"watcher",ty:"interrupt",p:[[330,140],[330,190]],l:"watched",lx:336,ly:170},
+ {f:"watcher",to:"orch",ty:"interrupt",p:[[420,235],[460,235]],l:"events",lx:423,ly:228},
+ {f:"signals",to:"orch",ty:"main",p:[[410,140],[410,160],[520,160],[520,180]]},
+ {f:"record",to:"orch",ty:"main",p:[[590,140],[590,180]],l:"signals + records",lx:598,ly:166},
+ {f:"brain",to:"orch",ty:"main",p:[[990,140],[990,165],[880,165],[880,180]],l:"powers every agent",lx:886,ly:177},
+ {f:"owner",to:"access",ty:"approval",p:[[900,140],[900,152],[1100,152],[1100,190]],both:1,l:"you decide",lx:1108,ly:176},
+ {f:"owner",to:"know",ty:"approval",p:[[730,40],[730,28],[105,28],[105,40]],l:"you write the brand files",lx:470,ly:24},
+ {f:"orch",to:"access",ty:"approval",p:[[920,235],[960,235]],both:1,l:"asks",lx:926,ly:228},
+ {f:"orch",to:"research",ty:"main",p:[[690,290],[690,322],[395,322],[395,350]],l:"briefs",lx:700,ly:316},
+ {f:"orch",to:"content",ty:"main",p:[[690,290],[690,322],[605,322],[605,350]]},
+ {f:"orch",to:"creative",ty:"main",p:[[690,290],[690,322],[815,322],[815,350]]},
+ {f:"research",to:"content",ty:"main",p:[[490,390],[510,390]]},
+ {f:"content",to:"creative",ty:"main",p:[[700,390],[720,390]]},
+ {f:"content",to:"email",ty:"main",p:[[605,430],[605,480]],l:"copy",lx:611,ly:459},
+ {f:"creative",to:"publisher",ty:"main",p:[[815,430],[815,480]],l:"assets",lx:821,ly:459},
+ {f:"publisher",to:"audience",ty:"main",p:[[910,525],[960,525]],l:"posts",lx:916,ly:518},
+ {f:"email",to:"audience",ty:"main",p:[[605,560],[605,592],[1000,592],[1000,560]],l:"emails",lx:760,ly:587},
+ {f:"audience",to:"community",ty:"interrupt",p:[[1140,490],[1140,440]],l:"comments + DMs",lx:1030,ly:469},
+ {f:"community",to:"audience",ty:"main",p:[[1010,440],[1010,490]],l:"replies",lx:964,ly:469},
+ {f:"community",to:"access",ty:"approval",p:[[1150,350],[1150,280]],l:"escalates",lx:1090,ly:318},
+ {f:"audience",to:"data",ty:"main",p:[[1120,560],[1120,670],[910,670]],l:"engagement data",lx:925,ly:664},
+ {f:"data",to:"analytics",ty:"main",p:[[395,630],[395,560]],l:"numbers",lx:401,ly:600},
+ {f:"analytics",to:"orch",ty:"feedback",p:[[330,560],[330,605],[262,605],[262,306],[480,306],[480,290]],l:"what worked",lx:268,ly:458},
+ {f:"audience",to:"signals",ty:"feedback",p:[[1180,525],[1193,525],[1193,12],[380,12],[380,40]],l:"the loop: results become new signals",lx:800,ly:9},
+ {f:"know",to:"watcher",ty:"knowledge",p:[[190,235],[220,235]]},
+ {f:"know",to:"research",ty:"knowledge",p:[[190,390],[300,390]],l:"every agent reads",lx:196,ly:383},
+ {f:"know",to:"analytics",ty:"knowledge",p:[[190,520],[300,520]]}
+];
+const ETYPES=[["main","Work moving forward","var(--ink)",""],["feedback","Feedback loop","var(--signal)",""],["approval","You and approvals","var(--owner)","6 4"],["interrupt","Events that trigger work","var(--dept)","6 4"],["knowledge","Reads brand files","var(--know)","2 4"]];
+const AG={
+ watcher:{trig:"Runs every hour on a schedule.",reads:"Signals, plus last week's baseline to spot changes.",writes:"Events for the Orchestrator: spikes, drops, mentions.",p:[1,0,0,0],tools:"Search Console, GA4, DataForSEO, Reddit, Google Alerts"},
+ orch:{trig:"Every event from the Watcher, plus one planning run each morning.",reads:"Signals, records, brand files, Analytics insights.",writes:"Scored briefs, calendar slots, approval requests.",p:[1,1,0,0],tools:"Claude skills + scheduled tasks"},
+ research:{trig:"A brief from the Orchestrator.",reads:"Signals and /research files.",writes:"A research summary attached to the brief.",p:[1,1,0,0],tools:"DataForSEO, Reddit, Trends, web search"},
+ content:{trig:"A brief with research attached.",reads:"/brand and /content files.",writes:"Drafts, an SEO score and variations.",p:[1,1,0,0],tools:"Claude, SEO checklist"},
+ creative:{trig:"Draft copy that needs visuals.",reads:"/creative specs and the asset drive.",writes:"Images, video and voiceover to the asset drive.",p:[1,1,0,0],tools:"kie.ai, Canva, Remotion, ElevenLabs"},
+ publisher:{trig:"An approved item reaches its calendar slot.",reads:"The calendar and /distribution playbooks.",writes:"Live posts and a post log.",p:[1,0,2,0],tools:"Buffer or native schedulers"},
+ email:{trig:"An approved campaign, or a customer action like a sign-up or purchase.",reads:"/audience files, the email list and store data.",writes:"Emails, flows and segments.",p:[1,1,2,0],tools:"Klaviyo, Shopify"},
+ analytics:{trig:"Daily and weekly on a schedule.",reads:"The data layer, GA4 and Search Console.",writes:"Your dashboard, plus insights for the Orchestrator.",p:[1,0,0,0],tools:"GA4, Search Console, Looker Studio"},
+ community:{trig:"A new comment or DM.",reads:"/brand tone rules and the FAQ.",writes:"Replies within the rules, and escalations to you.",p:[1,0,2,0],tools:"ManyChat, native inboxes"}
+};
+const PERMN=["Read","Draft","Publish","Spend"];
+const PERMV=[["No","Yes"],["No","Yes"],["No","Yes","Approved only"],["No"]];
+const svgNS="http://www.w3.org/2000/svg";
+let fsel=null; const eoff={};
+function pts(p){return p.map((q,i)=>(i?"L":"M")+q[0]+" "+q[1]).join(" ");}
+function drawFlow(){
+  const svg=document.getElementById("fsvg");
+  let h=`<defs>${ETYPES.map(([t,,c])=>`<marker id="ar-${t}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill:${c}"/></marker>`).join("")}</defs>`;
+  EDGES.forEach((e,i)=>{const on=fsel&&(e.f===fsel||e.to===fsel);h+=`<path class="edge ${e.ty}${on?" on":""}${eoff[e.ty]?" hidden-type":""}" d="${pts(e.p)}" marker-end="url(#ar-${e.ty})"${e.both?` marker-start="url(#ar-${e.ty})"`:""}/>`;});
+  Object.entries(NODES).forEach(([id,n])=>{
+    const on=fsel&&(id===fsel||EDGES.some(e=>!eoff[e.ty]&&((e.f===fsel&&e.to===id)||(e.to===fsel&&e.f===id))));
+    const cls=n.kind==="agent"?"agent":n.kind==="human"?"human":"tool";
+    const k=n.kind==="agent"?`AGENT ${n.n} OF 9`:n.k;
+    let g=`<g class="node ${cls}${on?" on":""}" data-id="${id}" tabindex="0" role="button" aria-label="${esc(n.t)}"><rect class="body" x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}"/>`;
+    g+=`<rect class="cap" x="${n.x}" y="${n.y}" width="${n.w}" height="${n.kind==="agent"?6:4}" style="fill:var(${n.c})"/>`;
+    g+=`<text class="k" x="${n.x+10}" y="${n.y+20}">${esc(k)}</text>`;
+    if(n.kind==="agent"){g+=`<rect class="pill" x="${n.x+n.w-58}" y="${n.y+10}" width="50" height="15"/><text class="pilltx" x="${n.x+n.w-33}" y="${n.y+21}" text-anchor="middle">AGENT</text>`;}
+    g+=`<text class="t" x="${n.x+10}" y="${n.y+40}">${esc(n.t)}</text>`;
+    n.s.forEach((s,j)=>g+=`<text class="s" x="${n.x+10}" y="${n.y+57+j*14}">${esc(s)}</text>`);
+    if(id==="know"){Object.keys(TREE).forEach((d,j)=>{g+=`<rect x="${n.x+10}" y="${n.y+100+j*28}" width="8" height="8" style="fill:var(${TREECOL[j]})"/><text class="s" x="${n.x+24}" y="${n.y+108+j*28}" style="font-family:var(--mono)">${d}</text>`;});
+      g+=`<text class="s" x="${n.x+10}" y="${n.y+330}">Read by all 9 agents.</text><text class="s" x="${n.x+10}" y="${n.y+344}">Only you change them.</text>`;}
+    h+=g+`</g>`;
+  });
+  EDGES.forEach(e=>{if(!e.l)return;const on=fsel&&(e.f===fsel||e.to===fsel);h+=`<text class="elabel${on?" on":""}${eoff[e.ty]?" hidden-type":""}" x="${e.lx}" y="${e.ly}">${esc(e.l)}</text>`;});
+  svg.innerHTML=h; svg.classList.toggle("focus",!!fsel);
+  const d=document.getElementById("fdetail");
+  if(!fsel){d.innerHTML=`<h3>Tap any box to trace it</h3><p class="full">Follow the black line from Signals down through the Orchestrator to the Audience, then the orange line back up to Signals. That circle is the whole system.</p>`;return;}
+  const n=NODES[fsel];const name=id=>NODES[id].t;
+  const ins=EDGES.filter(e=>e.to===fsel||(e.both&&e.f===fsel)).map(e=>`${name(e.to===fsel?e.f:e.to)}${e.l?` (${e.l})`:""}`);
+  const outs=EDGES.filter(e=>e.f===fsel||(e.both&&e.to===fsel)).map(e=>`${name(e.f===fsel?e.to:e.f)}${e.l?` (${e.l})`:""}`);
+  const a=AG[fsel];
+  d.innerHTML=`<h3>${esc(n.t)} ${n.kind==="agent"?ABADGE(n.n):`<span class="label">${n.kind==="human"?"You":"Not an agent"}</span>`}</h3>${a?`<p class="full">${esc(n.s.join(" "))}</p><div><span class="label">Starts when</span><p>${esc(a.trig)}</p></div><div><span class="label">Can do</span><div class="perms">${a.p.map((v,i)=>`<span class="perm ${v===1?"y":v===2?"g":""}">${PERMN[i]}${v===2?" · approved":""}</span>`).join("")}</div></div>`:`<p class="full">${esc(n.what)}</p>`}<div><span class="label">Gets from</span><ul>${ins.map(x=>`<li>${esc(x)}</li>`).join("")||"<li>Nothing. It starts here.</li>"}</ul></div><div><span class="label">Sends to</span><ul>${outs.map(x=>`<li>${esc(x)}</li>`).join("")||"<li>Nothing</li>"}</ul></div>`;
+}
+document.getElementById("etogs").innerHTML=ETYPES.map(([t,l,c,da])=>`<button class="etog" id="et-${t}" data-et="${t}" aria-pressed="true"><svg width="28" height="8" aria-hidden="true"><line x1="0" y1="4" x2="28" y2="4" style="stroke:${c}" stroke-width="2.4" stroke-dasharray="${da}"/></svg>${l}</button>`).join("");
+document.getElementById("fsvg").addEventListener("click",e=>{const g=e.target.closest(".node");fsel=g&&fsel!==g.dataset.id?g.dataset.id:null;drawFlow();});
+document.getElementById("fsvg").addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ")return;const g=e.target.closest(".node");if(!g)return;e.preventDefault();fsel=fsel===g.dataset.id?null:g.dataset.id;drawFlow();const n=document.querySelector(`.node[data-id="${g.dataset.id}"]`);n&&n.focus();});
+document.getElementById("etogs").addEventListener("click",e=>{const b=e.target.closest(".etog");if(!b)return;eoff[b.dataset.et]=!eoff[b.dataset.et];b.setAttribute("aria-pressed",!eoff[b.dataset.et]);drawFlow();});
+drawFlow();
+
+/* ---------- AGENTS TAB ---------- */
+const AORDER=["watcher","orch","research","content","creative","publisher","email","analytics","community"];
+document.getElementById("agrid").innerHTML=AORDER.map(id=>{const n=NODES[id],a=AG[id];return `<article class="acard" style="--c:var(${n.c})">${ABADGE(n.n)}<h3>${esc(n.t)}</h3><dl><dt>Job</dt><dd>${esc(n.s.join(" "))}</dd><dt>Starts when</dt><dd>${esc(a.trig)}</dd><dt>Reads</dt><dd>${esc(a.reads)}</dd><dt>Writes</dt><dd>${esc(a.writes)}</dd><dt>Tools</dt><dd>${esc(a.tools)}</dd></dl><div class="perms">${a.p.map((v,i)=>`<span class="perm ${v===1?"y":v===2?"g":""}">${PERMN[i]}${v===2?" · approved":""}</span>`).join("")}</div></article>`;}).join("");
+document.getElementById("matrix").innerHTML=`<thead><tr><th>Agent</th>${PERMN.map(p=>`<th>${p}</th>`).join("")}</tr></thead><tbody>${AORDER.map(id=>`<tr><td><b>${NODES[id].n}.</b> ${esc(NODES[id].t)}</td>${AG[id].p.map((v,i)=>`<td class="${v===1?"y":v===2?"g":"n"}">${i===3?"Asks you":v===1?"Yes":v===2?"Approved only":"—"}</td>`).join("")}</tr>`).join("")}</tbody>`;
+
+// open one example at rest so the first view shows how a part expands
+open.signals=0; open.brain=1;
+renderAll();
+startLive();
+</script>

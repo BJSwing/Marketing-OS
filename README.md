@@ -9,6 +9,16 @@ A one-person AI marketing team you can set up for any brand. This plugin is the 
 | **Onboard a project** | Sets up a new brand in one guided session of about 45 minutes | "Onboard a new brand" · "Resume onboarding" |
 | **Research tools** | Each marketing module finds the best tool for this brand, starting from a shared tool library | "Research tools for email" · "Find a better scheduling tool" |
 | **Project rules** | Keeps work inside one brand and enforces its approval, spend and kill-switch rules | "Switch to Tackle Jacket" · "Pause everything" · "Let routine posts auto-ship" |
+| **Build dashboards** | Gives each brand its own live Control Panel and Project Map, the same design for every project | "Build the dashboards" · "Sync the dashboards" |
+
+## Each project's dashboards
+
+Onboarding ends by publishing two private pages for the brand. Both update live as agents work, and both work on your phone.
+
+- **Control Panel.** What's waiting for your yes, what shipped, spend against your caps, each agent's status, and the activity log. You can approve or send back items, pause one agent, or pause everything from here. Rules and caps change only in chat.
+- **Project Map.** The Marketing OS blueprint with this brand's tool on every job, the jobs still empty, open questions in each brand file, and how far through the build order the brand is.
+
+Your taps on the Control Panel are copied into the brand's markdown files on the next agent step, so the files stay the master copy.
 
 ## How the pieces fit
 
@@ -60,6 +70,8 @@ Marketing OS still works without it, but the 24 agents won't be connected.
 - One project at a time; a project never reads another project's files unless you ask by name.
 
 ## Improving the engine
+
+To change the dashboard design for every brand, edit the two files in `skills/build-dashboards/templates/`, bump the version, then say "rebuild the dashboards" in each brand's project. Each page keeps its link and its data.
 
 Projects never change this plugin. When a project's tool research finds something better, it writes it to that project's `system/tool-suggestions.md`. Review those, add the good ones to `skills/research-tools/references/tool-library.md` here, bump the version in `.claude-plugin/plugin.json`, and every project gets the update.
 

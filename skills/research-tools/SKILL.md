@@ -21,7 +21,7 @@ Work one module at a time. For each job in the module:
 2. **Search for a better fit.** Use web search for tools suited to this project's channels, industry, size, region or budget that the library doesn't list. Open the vendor pages you rely on; a search snippet is not a source.
 3. **Compare 2 to 4 options** in a short table: tool, what it costs (from the vendor page, with the date checked), how well it fits this project, whether a Claude connector exists. Recommend one and say why in one sentence.
 4. **The owner decides.** Ask them to pick one or skip. Never pick for them.
-5. **Record it.** Add a row to `system/tools.md` with the job, tool, whether it's connected, today's date and the reason. A skipped job goes in as `GAP`, never a guess.
+5. **Record it.** Add a row to `system/tools.md` with the job, tool, whether it's connected, today's date and the reason. A skipped job goes in as `GAP`, never a guess. If the project has a Project Map, update its `tools/<job-key>` document too (keys are in the `build-dashboards` skill's data contract).
 6. **Suggest additions to the library.** If research found a tool the library lacks and it was the better fit, add a row to `system/tool-suggestions.md` with the date, job, tool, free or paid, why it was better here and the source link.
 
 ## Rules

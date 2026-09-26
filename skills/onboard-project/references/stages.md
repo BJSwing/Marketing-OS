@@ -105,3 +105,9 @@ Tell the owner the link to the saved folder.
 4. If a check fails, name the file behind the failure, ask the one question that fixes that file, update it, and redraft. Repeat until every check passes.
 5. Put the post in the approval queue: DMP's approval manager if installed (type `schedule-social`, risk `low`), otherwise a markdown file in `approvals/` named `<date>-test-post.md` with status `pending`.
 6. Ask the owner to approve or reject it. Record the answer. Do not publish it either way.
+
+## Stage 10 · Dashboards
+
+Load the `build-dashboards` skill and follow it. It publishes this project's Control Panel and Project Map, records both links in `system/project.md`, and fills them from the files written in stage 8, including the test post from stage 9.
+
+If the Artifact tool isn't available in this session, say so, mark stage 10 unfinished in the log, and finish the summary. The owner can say "build the dashboards" later from a session that has it.

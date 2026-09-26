@@ -14,9 +14,10 @@ blog_or_page_change: ask_me
 dm_reply: ask_me
 ad_change: ask_me
 kill_switch: off
+paused_agents: []
 ```
 
-Allowed values: `ask_me` or `auto_ship`. `kill_switch: on` pauses every agent.
+Allowed values: `ask_me` or `auto_ship`. `kill_switch: on` pauses every agent. An agent listed under `paused_agents` does nothing until it is removed. The owner can flip both from the control panel.
 
 ## Change log
 | Date | Rule | From | To | Who |

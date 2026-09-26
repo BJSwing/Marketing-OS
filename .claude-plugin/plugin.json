@@ -1,12 +1,18 @@
 {
   "name": "marketing-os",
-  "version": "0.1.0",
-  "description": "A one-person AI marketing team you can set up for any brand: guided onboarding, per-project brand files, approval and spend rules, and per-module tool research. Runs on top of Digital Marketing Pro.",
+  "version": "0.2.0",
+  "description": "A one-person AI marketing team you can set up for any brand: guided onboarding, per-project brand files, approval and spend rules, per-module tool research, and a live Control Panel and Project Map for every project. Runs on top of Digital Marketing Pro.",
   "author": {
     "name": "BJ Swing"
   },
   "homepage": "https://github.com/BJSwing/Marketing-OS",
   "repository": "https://github.com/BJSwing/Marketing-OS",
   "license": "MIT",
-  "keywords": ["marketing", "onboarding", "brand", "approvals", "agents"]
+  "keywords": [
+    "marketing",
+    "onboarding",
+    "brand",
+    "approvals",
+    "agents"
+  ]
 }

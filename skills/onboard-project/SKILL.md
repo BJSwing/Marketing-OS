@@ -5,7 +5,7 @@ description: Sets up Marketing OS for a new brand or client in one guided sessio
 
 # Onboard a project
 
-Turn one brand into a running Marketing OS project. Work through nine stages in order. Each stage is detailed in `references/stages.md`; read it before starting stage 1 and follow it exactly.
+Turn one brand into a running Marketing OS project. Work through ten stages in order. Each stage is detailed in `references/stages.md`; read it before starting stage 1 and follow it exactly.
 
 ## Non-negotiable rules
 
@@ -24,7 +24,7 @@ Turn one brand into a running Marketing OS project. Work through nine stages in 
 - Check whether Digital Marketing Pro is available (its skills or commands appear as `digital-marketing-pro:*`). If it is not, tell the owner in one line that onboarding will still work but the 24 DMP agents won't be connected until it's installed, and continue.
 - If `system/onboarding-log.md` already exists for this project, this is a resume. Say which stage is next and continue there.
 
-## The nine stages
+## The ten stages
 
 | Stage | Goal | Writes |
 | --- | --- | --- |
@@ -37,8 +37,9 @@ Turn one brand into a running Marketing OS project. Work through nine stages in 
 | 7 Tools | Each module researches its tools | `system/tools.md`, `system/tool-suggestions.md` |
 | 8 Write and connect | Write all files; sync DMP; save to the chosen location | Whole project folder |
 | 9 Test post | Draft from the files alone, check, queue it | First item in the approval queue |
+| 10 Dashboards | Build the live Control Panel and Project Map | Two private pages, links in `system/project.md` |
 
-Stage 7 uses the `research-tools` skill in this plugin. Load it at stage 7.
+Stage 7 uses the `research-tools` skill in this plugin. Load it at stage 7. Stage 10 uses the `build-dashboards` skill. Load it at stage 10.
 
 ## Files
 
@@ -48,12 +49,13 @@ Stage 7 uses the `research-tools` skill in this plugin. Load it at stage 7.
 
 ## Finishing
 
-When stage 9 passes, give the owner a short summary:
+When stage 10 is done, give the owner a short summary:
 
 - Where the project files live (link)
 - How many questions are still OPEN, with the top three
 - The approval rules and caps as set
 - Tools picked, and jobs left as gaps
 - The test post's status in the queue
+- That the Control Panel and Project Map are live (their cards carry the links)
 
-Then offer one next step: answer the open questions, or build this project's control panel.
+Then offer one next step: answer the open questions.

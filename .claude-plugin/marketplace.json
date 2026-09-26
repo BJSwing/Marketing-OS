@@ -3,6 +3,9 @@
   "owner": {
     "name": "BJ Swing"
   },
+  "metadata": {
+    "description": "BJ Swing's Marketing OS: a one-person AI marketing team for any brand."
+  },
   "plugins": [
     {
       "name": "marketing-os",
